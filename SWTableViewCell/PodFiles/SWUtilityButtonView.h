@@ -21,6 +21,7 @@
 @property (nonatomic, assign) SEL utilityButtonSelector;
 
 - (void)setUtilityButtons:(NSArray *)utilityButtons WithButtonWidth:(CGFloat)width;
+- (void)setUtilityButtons:(NSArray *)utilityButtons WithButtonsWidth:(NSArray *)widths;
 - (void)pushBackgroundColors;
 - (void)popBackgroundColors;
 
