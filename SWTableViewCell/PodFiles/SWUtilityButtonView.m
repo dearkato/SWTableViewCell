@@ -60,6 +60,88 @@
     [self setUtilityButtons:utilityButtons WithButtonWidth:kUtilityButtonWidthDefault];
 }
 
+- (void)setUtilityButtons:(NSArray *)utilityButtons WithButtonsWidth:(NSArray *)widths
+{
+    for (UIButton *button in _utilityButtons)
+    {
+        [button removeFromSuperview];
+    }
+    
+    _utilityButtons = [utilityButtons copy];
+    CGFloat fullWidth = 0;
+    if (utilityButtons.count)
+    {
+        NSUInteger utilityButtonsCounter = 0;
+        UIView *precedingView = nil;
+        
+//        for (UIButton *button in _utilityButtons)
+        for (int i = 0; i < _utilityButtons.count; i++)
+        {
+            UIButton *button = _utilityButtons[i];
+            fullWidth += [widths[i] floatValue];
+            [self addSubview:button];
+            button.translatesAutoresizingMaskIntoConstraints = NO;
+            
+            NSDictionary *metrics = @{@"width": (NSNumber *)widths[i]};
+            if (!precedingView)
+            {
+                // First button; pin it to the left edge.
+                [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[button(==width)]"
+                                                                             options:0L
+                                                                             metrics:metrics
+                                                                               views:NSDictionaryOfVariableBindings(button)]];
+                
+                //Add shadow
+                UIImageView *shadow = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"shadow"]];
+                [self addSubview: shadow];
+                shadow.translatesAutoresizingMaskIntoConstraints = NO;
+                [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[shadow(==5)]"
+                                                                             options:0L
+                                                                             metrics:NULL
+                                                                               views:NSDictionaryOfVariableBindings(shadow)]];
+                [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[shadow]|"
+                                                                             options:0L
+                                                                             metrics:NULL
+                                                                               views:NSDictionaryOfVariableBindings(shadow)]];
+            }
+            else
+            {
+                // Subsequent button; pin it to the right edge of the preceding one, with equal width.
+                [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[precedingView][button(==width)]"
+                                                                             options:0L
+                                                                             metrics:metrics
+                                                                               views:NSDictionaryOfVariableBindings(precedingView, button)]];
+            }
+            
+            [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[button]|"
+                                                                         options:0L
+                                                                         metrics:metrics
+                                                                           views:NSDictionaryOfVariableBindings(button)]];
+            
+            
+            SWUtilityButtonTapGestureRecognizer *utilityButtonTapGestureRecognizer = [[SWUtilityButtonTapGestureRecognizer alloc] initWithTarget:_parentCell action:_utilityButtonSelector];
+            utilityButtonTapGestureRecognizer.buttonIndex = utilityButtonsCounter;
+            [button addGestureRecognizer:utilityButtonTapGestureRecognizer];
+            
+            utilityButtonsCounter++;
+            precedingView = button;
+            
+        }
+        
+        // Pin the last button to the right edge.
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"[precedingView]|"
+                                                                     options:0L
+                                                                     metrics:nil
+                                                                       views:NSDictionaryOfVariableBindings(precedingView)]];
+    }
+    
+    self.widthConstraint.constant = fullWidth;//(width * utilityButtons.count);
+    
+    [self setNeedsLayout];
+    
+    return;
+}
+
 - (void)setUtilityButtons:(NSArray *)utilityButtons WithButtonWidth:(CGFloat)width
 {
     for (UIButton *button in _utilityButtons)
